@@ -7,6 +7,9 @@ import { DateTimeRangePicker, DateTimeRange } from "@/components/date-time-range
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { SelectDemo } from "@/components/select-demo";
+import { Select } from "@/components/ui/select";
 
 // Example data type for the table
 interface Appointment {
@@ -158,6 +161,9 @@ export default function Home() {
           searchPlaceholder="Search appointments..."
         />
       </div>
+      <SelectDemo />
+      {/* <Select /> */}
+     <Alert title="Alert" description="This is an alert" variant={'default'} />
     </div>
   );
 }

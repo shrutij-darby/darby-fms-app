@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -14,8 +14,8 @@ const SelectValue = SelectPrimitive.Value
 
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & { showClearButton?: boolean; onClear?: () => void }
+>(({ className, children, showClearButton, onClear, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
@@ -25,9 +25,22 @@ const SelectTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
-    </SelectPrimitive.Icon>
+    <div className="flex items-center gap-1">
+      {showClearButton && (
+        <div 
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onClear) onClear();
+          }}
+          className="cursor-pointer hover:text-destructive"
+        >
+          <X className="h-4 w-4" />
+        </div>
+      )}
+      <SelectPrimitive.Icon asChild>
+        <ChevronDown className="h-4 w-4 opacity-50" />
+      </SelectPrimitive.Icon>
+    </div>
   </SelectPrimitive.Trigger>
 ))
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
@@ -146,6 +159,116 @@ const SelectSeparator = React.forwardRef<
 ))
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 
+// Enhanced Select component with simplified API
+export interface SelectOption {
+  value: string
+  label: string
+}
+
+export interface EnhancedSelectProps {
+  options: SelectOption[]
+  value?: string
+  defaultValue?: string
+  onValueChange?: (value: string) => void
+  placeholder?: string
+  className?: string
+  triggerClassName?: string
+  disabled?: boolean
+  allowClear?: boolean
+  label?: string
+}
+
+const EnhancedSelect = React.forwardRef<HTMLButtonElement, EnhancedSelectProps>(
+  ({ 
+    options,
+    value,
+    defaultValue,
+    onValueChange,
+    placeholder = "Select an option",
+    className,
+    triggerClassName,
+    disabled = false,
+    allowClear = true,
+    label,
+    ...props 
+  }, ref) => {
+    const [selectedValue, setSelectedValue] = React.useState<string | undefined>(
+      value !== undefined ? value : defaultValue
+    )
+    const [open, setOpen] = React.useState(false)
+    
+    // Update internal state when external value changes
+    React.useEffect(() => {
+      if (value !== undefined) {
+        setSelectedValue(value)
+      }
+    }, [value])
+    
+    const handleValueChange = (newValue: string) => {
+      if (value === undefined) {
+        setSelectedValue(newValue)
+      }
+      if (onValueChange) {
+        onValueChange(newValue)
+      }
+    }
+    
+    const handleClear = (e: React.MouseEvent) => {
+      e.stopPropagation()
+      if (value === undefined) {
+        setSelectedValue(undefined)
+      }
+      if (onValueChange) {
+        onValueChange("")
+      }
+      setOpen(false)
+    }
+    
+    const selectedOption = options.find(option => option.value === selectedValue)
+    
+    return (
+      <div className={cn("relative", className)}>
+        {label && (
+          <label className="text-sm font-medium mb-1.5 block">
+            {label}
+          </label>
+        )}
+        <Select
+          value={selectedValue}
+          defaultValue={defaultValue}
+          onValueChange={handleValueChange}
+          open={open}
+          onOpenChange={setOpen}
+          disabled={disabled}
+        >
+          <div className="relative">
+            <SelectTrigger 
+              ref={ref} 
+              className={triggerClassName}
+              showClearButton={allowClear && !!selectedValue}
+              // onClear={handleClear}
+            >
+              <SelectValue placeholder={placeholder}>
+                {selectedOption?.label || placeholder}
+              </SelectValue>
+            </SelectTrigger>
+          </div>
+          
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    )
+  }
+)
+
+EnhancedSelect.displayName = "EnhancedSelect"
+
 export {
   Select,
   SelectGroup,
@@ -157,4 +280,5 @@ export {
   SelectSeparator,
   SelectScrollUpButton,
   SelectScrollDownButton,
+  EnhancedSelect,
 }
