@@ -7,9 +7,10 @@ import { DateTimeRangePicker, DateTimeRange } from "@/components/date-time-range
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Alert } from "@/components/ui/alert";
 import { SelectDemo } from "@/components/select-demo";
-import { Select } from "@/components/ui/select";
+import {  SelectDropdown } from "@/components/ui/select";
+import { DialogExample } from "@/components/examples/dialog-example";
 
 // Example data type for the table
 interface Appointment {
@@ -74,6 +75,16 @@ export default function Home() {
   });
   
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectedValue, setSelectedValue] = useState<string>("");
+  
+  // Sample options for the EnhancedSelect component
+  const sampleOptions = [
+    { value: "option1", label: "Option 1" },
+    { value: "option2", label: "Option 2" },
+    { value: "option3", label: "Option 3" },
+    { value: "option4", label: "Option 4" },
+    { value: "option5", label: "Option 5" },
+  ];
 
   // Define columns for the data table
   const columns: ColumnDef<Appointment>[] = [
@@ -162,7 +173,24 @@ export default function Home() {
         />
       </div>
       <SelectDemo />
-      {/* <Select /> */}
+      <SelectDropdown 
+        options={sampleOptions} 
+        filter={true}
+        value={selectedValue} 
+        onValueChange={setSelectedValue} 
+        placeholder="Select an option..."
+        className="w-full max-w-sm"
+        label="Select Example"
+        allowClear={true}
+      />
+      <DialogExample />
+      <div className="flex gap-2">
+          <Button variant={'destructive'}>Button - Destructive</Button>
+          <Button variant={'outline'}>Button - Outline</Button>
+          <Button variant={'secondary'}>Button - Secondary</Button>
+          <Button variant={'ghost'}>Button - Ghost</Button>
+          <Button variant={'link'}>Button - Link</Button>
+      </div>
      <Alert title="Alert" description="This is an alert" variant={'default'} />
     </div>
   );

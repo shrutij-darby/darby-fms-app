@@ -48,7 +48,7 @@ export function FilterableMultiSelect({
   disabled = false,
   className,
   maxDisplayTags = 5,
-  noOptionsMessage = "No options available",
+  noOptionsMessage = "No results found",
   searchPlaceholder = "Search...",
 }: FilterableMultiSelectProps) {
   // State for options, selected values, search term, and dropdown open state
@@ -64,9 +64,9 @@ export function FilterableMultiSelect({
   const searchInputRef = useRef<HTMLInputElement>(null)
   
   // Effect to handle initial selected values
-  useEffect(() => {
-    setSelected(selectedValues)
-  }, [selectedValues])
+  // useEffect(() => {
+  //   setSelected(selectedValues)
+  // }, [selectedValues])
   
   // Effect to handle outside clicks to close dropdown
   useEffect(() => {

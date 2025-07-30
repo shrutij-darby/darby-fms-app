@@ -124,6 +124,7 @@ export function DateTimeRangePicker({
                 from: value.from,
                 to: value.to,
               }}
+              
               onSelect={(range) => {
                 onChange({
                   ...value,

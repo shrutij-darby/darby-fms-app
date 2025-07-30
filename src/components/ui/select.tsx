@@ -2,7 +2,9 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp, X } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, Search, X } from "lucide-react"
+
+import { Input } from "./input"
 
 import { cn } from "@/lib/utils"
 
@@ -14,7 +16,7 @@ const SelectValue = SelectPrimitive.Value
 
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & { showClearButton?: boolean; onClear?: () => void }
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & { showClearButton?: boolean; onClear? : (e: React.MouseEvent) => void }
 >(({ className, children, showClearButton, onClear, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
@@ -29,8 +31,14 @@ const SelectTrigger = React.forwardRef<
       {showClearButton && (
         <div 
           onClick={(e) => {
+            console.log('Clear button clicked');
             e.stopPropagation();
-            if (onClear) onClear();
+            if (onClear) {
+              console.log('onClear function exists, calling it');
+              onClear(e);
+            } else {
+              console.log('onClear function is undefined');
+            }
           }}
           className="cursor-pointer hover:text-destructive"
         >
@@ -160,13 +168,8 @@ const SelectSeparator = React.forwardRef<
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 
 // Enhanced Select component with simplified API
-export interface SelectOption {
-  value: string
-  label: string
-}
-
-export interface EnhancedSelectProps {
-  options: SelectOption[]
+export interface SelectDropdownProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> {
+  options: { value: string; label: string }[]
   value?: string
   defaultValue?: string
   onValueChange?: (value: string) => void
@@ -176,9 +179,13 @@ export interface EnhancedSelectProps {
   disabled?: boolean
   allowClear?: boolean
   label?: string
+  filter?: boolean
+  onFilter?: (searchTerm: string) => Promise<{ value: string; label: string }[]>
+  searchPlaceholder?: string
+  rules?: { required?: boolean; message?: string }
 }
 
-const EnhancedSelect = React.forwardRef<HTMLButtonElement, EnhancedSelectProps>(
+const SelectDropdown = React.forwardRef<HTMLButtonElement, SelectDropdownProps>(
   ({ 
     options,
     value,
@@ -189,13 +196,23 @@ const EnhancedSelect = React.forwardRef<HTMLButtonElement, EnhancedSelectProps>(
     triggerClassName,
     disabled = false,
     allowClear = true,
+    filter = false,
     label,
-    ...props 
+    onFilter,
+    searchPlaceholder = "Search...",
+    rules,
+    ...props
   }, ref) => {
-    const [selectedValue, setSelectedValue] = React.useState<string | undefined>(
-      value !== undefined ? value : defaultValue
+    const [selectedValue, setSelectedValue] = React.useState<string>(
+      value !== undefined ? value : defaultValue || ""
     )
     const [open, setOpen] = React.useState(false)
+    const [searchTerm, setSearchTerm] = React.useState("")
+    const [filteredOptions, setFilteredOptions] = React.useState(options)
+    const [isLoading, setIsLoading] = React.useState(false)
+    const [isFocused, setIsFocused] = React.useState(false)
+    const [error, setError] = React.useState<string | null>(null)
+    const searchInputRef = React.useRef<HTMLInputElement>(null)
     
     // Update internal state when external value changes
     React.useEffect(() => {
@@ -204,10 +221,27 @@ const EnhancedSelect = React.forwardRef<HTMLButtonElement, EnhancedSelectProps>(
       }
     }, [value])
     
+    // Initialize filtered options with all options
+    React.useEffect(() => {
+      setFilteredOptions(options)
+    }, [options])
+    
+    const validateValue = React.useCallback((val: string) => {
+      if (rules?.required && !val) {
+        return rules.message || "This field is required"
+      }
+      return null
+    }, [rules])
+    
     const handleValueChange = (newValue: string) => {
+      // Validate the new value
+      const validationError = validateValue(newValue)
+      setError(validationError)
+      
       if (value === undefined) {
         setSelectedValue(newValue)
       }
+      
       if (onValueChange) {
         onValueChange(newValue)
       }
@@ -215,23 +249,63 @@ const EnhancedSelect = React.forwardRef<HTMLButtonElement, EnhancedSelectProps>(
     
     const handleClear = (e: React.MouseEvent) => {
       e.stopPropagation()
-      if (value === undefined) {
-        setSelectedValue(undefined)
-      }
+    
       if (onValueChange) {
         onValueChange("")
       }
+      
+      setSelectedValue("")
+      
       setOpen(false)
     }
     
+    const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const term = e.target.value
+      setSearchTerm(term)
+      
+      if (onFilter) {
+        setIsLoading(true)
+        try {
+          const results = await onFilter(term)
+          setFilteredOptions(results)
+        } catch (error) {
+          console.error('Error filtering options:', error)
+          const filtered = options.filter(option => 
+            option.label.toLowerCase().includes(term.toLowerCase()))
+          setFilteredOptions(filtered)
+        } finally {
+          setIsLoading(false)
+        }
+      } else {
+        const filtered = options.filter(option => 
+          option.label.toLowerCase().includes(term.toLowerCase()))
+        setFilteredOptions(filtered)
+      }
+    }
+    
     const selectedOption = options.find(option => option.value === selectedValue)
+
+    // Validate initial value on component mount
+    React.useEffect(() => {
+      if (rules) {
+        const initialError = validateValue(selectedValue)
+        setError(initialError)
+      }
+    }, [rules, selectedValue, validateValue])
     
     return (
       <div className={cn("relative", className)}>
         {label && (
-          <label className="text-sm font-medium mb-1.5 block">
+          <div className="mb-2 text-sm font-medium">
             {label}
-          </label>
+          </div>
+        )}
+        
+        {/* Error message display */}
+        {error && (
+          <div className="text-sm text-destructive mb-1">
+            {error}
+          </div>
         )}
         <Select
           value={selectedValue}
@@ -242,24 +316,64 @@ const EnhancedSelect = React.forwardRef<HTMLButtonElement, EnhancedSelectProps>(
           disabled={disabled}
         >
           <div className="relative">
-            <SelectTrigger 
-              ref={ref} 
-              className={triggerClassName}
-              showClearButton={allowClear && !!selectedValue}
-              // onClear={handleClear}
-            >
-              <SelectValue placeholder={placeholder}>
-                {selectedOption?.label || placeholder}
-              </SelectValue>
-            </SelectTrigger>
+            <div className="relative w-full">
+              <SelectTrigger 
+                ref={ref} 
+                className={cn(triggerClassName, allowClear && selectedValue ? "pr-12" : "pr-8")}
+              >
+                <SelectValue placeholder={placeholder}>
+                  {selectedOption?.label || placeholder}
+                </SelectValue>
+              </SelectTrigger>
+              
+              {/* Custom clear button positioned absolutely */}
+              {allowClear && selectedValue && (
+                <div 
+                  className="absolute right-8 top-1/2 -translate-y-1/2 cursor-pointer hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('Custom clear button clicked');
+                    handleClear(e);
+                  }}
+                >
+                  <X className="h-3 w-3 text-neutral-500" />
+                </div>
+              )}
+            </div>
           </div>
           
           <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
+            {filter && (
+              <div className="relative px-2 py-2">
+                <Search className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" />
+                <Input
+                  ref={searchInputRef}
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  placeholder={searchPlaceholder}
+                  className="pl-8 h-8 w-full"
+                  autoComplete="off"
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                />
+              </div>
+            )}
+            
+            {isLoading ? (
+              <div className="flex items-center justify-center py-2 text-sm text-muted-foreground">
+                Loading...
+              </div>
+            ) : filteredOptions.length === 0 ? (
+              <div className="flex items-center justify-center py-2 text-sm text-muted-foreground">
+                No results found
+              </div>
+            ) : (
+              filteredOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -267,7 +381,7 @@ const EnhancedSelect = React.forwardRef<HTMLButtonElement, EnhancedSelectProps>(
   }
 )
 
-EnhancedSelect.displayName = "EnhancedSelect"
+SelectDropdown.displayName = "SelectDropdown"
 
 export {
   Select,
@@ -280,5 +394,5 @@ export {
   SelectSeparator,
   SelectScrollUpButton,
   SelectScrollDownButton,
-  EnhancedSelect,
+  SelectDropdown,
 }
