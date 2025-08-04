@@ -116,24 +116,101 @@ export function DateTimeRangePicker({
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <div className="p-3 space-y-3">
-            <Calendar
-              initialFocus
-              mode="range"
-              defaultMonth={value.from}
-              selected={{
-                from: value.from,
-                to: value.to,
-              }}
-              
-              onSelect={(range) => {
-                onChange({
-                  ...value,
-                  from: range?.from,
-                  to: range?.to,
-                });
-              }}
-              numberOfMonths={2}
-            />
+            <div className="flex">
+              <div>
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={value.from}
+                  selected={{
+                    from: value.from,
+                    to: value.to,
+                  }}
+                  onSelect={(range) => {
+                    onChange({
+                      ...value,
+                      from: range?.from,
+                      to: range?.to,
+                    });
+                  }}
+                  numberOfMonths={2}
+                />
+              </div>
+              <div className="border-l pl-3 ml-3 flex flex-col gap-2">
+                <div className="text-sm font-medium mb-1">Quick Select</div>
+                {[
+                  { 
+                    label: "Today", 
+                    value: { from: new Date(), to: new Date() } 
+                  },
+                  { 
+                    label: "Tomorrow", 
+                    value: { 
+                      from: new Date(new Date().setDate(new Date().getDate() + 1)), 
+                      to: new Date(new Date().setDate(new Date().getDate() + 1)) 
+                    } 
+                  },
+                  { 
+                    label: "Last 4 hours", 
+                    value: { 
+                      from: new Date(new Date().setHours(new Date().getHours() - 4)), 
+                      to: new Date() 
+                    } 
+                  },
+                  { 
+                    label: "Last 12 hours", 
+                    value: { 
+                      from: new Date(new Date().setHours(new Date().getHours() - 12)), 
+                      to: new Date() 
+                    } 
+                  },
+                  { 
+                    label: "Last 24 hours", 
+                    value: { 
+                      from: new Date(new Date().setHours(new Date().getHours() - 24)), 
+                      to: new Date() 
+                    } 
+                  },
+                  { 
+                    label: "Last 7 days", 
+                    value: { 
+                      from: new Date(new Date().setDate(new Date().getDate() - 7)), 
+                      to: new Date() 
+                    } 
+                  },
+                  { 
+                    label: "Last 15 days", 
+                    value: { 
+                      from: new Date(new Date().setDate(new Date().getDate() - 15)), 
+                      to: new Date() 
+                    } 
+                  },
+                  { 
+                    label: "Last 30 days", 
+                    value: { 
+                      from: new Date(new Date().setDate(new Date().getDate() - 30)), 
+                      to: new Date() 
+                    } 
+                  }
+                ].map((option, index) => (
+                  <Button 
+                    key={index} 
+                    variant="outline" 
+                    size="sm"
+                    className="justify-start text-left"
+                    onClick={() => {
+                      onChange({
+                        ...value,
+                        from: option.value.from,
+                        to: option.value.to,
+                      });
+                    }}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
             {showTimeRange && (
             <div className="grid grid-cols-2 gap-2 pt-2 border-t">
               <div className="space-y-1">
@@ -203,4 +280,4 @@ export function DateTimeRangePicker({
       </Popover>
     </div>
   );
-}
+} 

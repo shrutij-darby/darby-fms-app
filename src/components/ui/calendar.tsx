@@ -16,15 +16,19 @@ function Calendar({
   showOutsideDays = true,
   captionLayout = "label",
   buttonVariant = "ghost",
+  customDays,
   formatters,
   components,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
+  customDays?: Array<{ label: string; value: Date | Date[] | { from: Date; to: Date } }>
+  onCustomDaySelect?: (value: Date | Date[] | { from: Date; to: Date }) => void
 }) {
   const defaultClassNames = getDefaultClassNames()
 
   return (
+    <>
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
@@ -155,6 +159,7 @@ function Calendar({
           )
         },
         DayButton: CalendarDayButton,
+
         WeekNumber: ({ children, ...props }) => {
           return (
             <td {...props}>
@@ -168,6 +173,28 @@ function Calendar({
       }}
       {...props}
     />
+    {customDays && (
+      <div className="mt-2 flex flex-wrap gap-2">
+        {customDays.map((day, index) => (
+          <Button 
+            key={index} 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              if (day.value) {
+                // Use the custom handler if provided
+                if (props.onCustomDaySelect) {
+                  props.onCustomDaySelect(day.value);
+                }
+              }
+            }}
+          >
+            {day.label}
+          </Button>
+        ))}
+      </div>
+    )}
+    </>
   )
 }
 
