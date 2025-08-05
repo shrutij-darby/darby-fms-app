@@ -11,6 +11,8 @@ import { Alert } from "@/components/ui/alert";
 import { SelectDemo } from "@/components/select-demo";
 import {  SelectDropdown } from "@/components/ui/select";
 import { DialogExample } from "@/components/examples/dialog-example";
+import { FileUpload } from "@/components/file-upload";
+import { ImageUpload } from "@/components/image-upload";
 
 // Example data type for the table
 interface Appointment {
@@ -190,6 +192,16 @@ export default function Home() {
           <Button variant={'secondary'}>Button - Secondary</Button>
           <Button variant={'ghost'}>Button - Ghost</Button>
           <Button variant={'link'}>Button - Link</Button>
+      </div>
+      <div className="w-full flex flex-row justify-between">
+        <div className="w-full">
+          <h2 className="text-xl font-semibold mb-4">File Upload Component</h2>
+          <FileUpload />
+        </div>
+        <div className="w-full">
+          <h2 className="text-xl font-semibold mb-4">Image Upload Component</h2>
+          <ImageUpload />
+        </div>
       </div>
      <Alert title="Alert" description="This is an alert" variant={'default'} />
     </div>
