@@ -142,9 +142,9 @@ export default function Home() {
   };
 
   return (
-    <div className="font-sans flex flex-col items-center p-8 gap-8">
+    <div className="w-full  flex flex-col items-center p-8 gap-8">
       <LoginForm />
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="w-full">
           <h2 className="text-lg font-medium mb-4">Select Date & Time Range</h2>
           <DateTimeRangePicker
@@ -164,7 +164,7 @@ export default function Home() {
         </div>
       </div>
       
-      <div className="w-full max-w-4xl">
+      <div className="w-full ">
         <DataTable
           data={appointmentData}
           columns={columns}
@@ -183,6 +183,7 @@ export default function Home() {
         placeholder="Select an option..."
         className="w-full max-w-sm"
         label="Select Example"
+        icon={<ArrowUpDown className="h-4 w-4" />}
         allowClear={true}
       />
       <DialogExample />
@@ -196,11 +197,11 @@ export default function Home() {
       <div className="w-full flex flex-row justify-between">
         <div className="w-full">
           <h2 className="text-xl font-semibold mb-4">File Upload Component</h2>
-          <FileUpload />
+          <FileUpload multiple={true}/>
         </div>
         <div className="w-full">
           <h2 className="text-xl font-semibold mb-4">Image Upload Component</h2>
-          <ImageUpload />
+          <ImageUpload multiple={true}/>
         </div>
       </div>
      <Alert title="Alert" description="This is an alert" variant={'default'} />

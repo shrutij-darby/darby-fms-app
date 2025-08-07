@@ -183,6 +183,7 @@ export interface SelectDropdownProps extends React.ComponentPropsWithoutRef<type
   onFilter?: (searchTerm: string) => Promise<{ value: string; label: string }[]>
   searchPlaceholder?: string
   rules?: { required?: boolean; message?: string }
+  icon?: React.ReactNode
 }
 
 const SelectDropdown = React.forwardRef<HTMLButtonElement, SelectDropdownProps>(
@@ -201,6 +202,7 @@ const SelectDropdown = React.forwardRef<HTMLButtonElement, SelectDropdownProps>(
     onFilter,
     searchPlaceholder = "Search...",
     rules,
+    icon,
     ...props
   }, ref) => {
     const [selectedValue, setSelectedValue] = React.useState<string>(
@@ -297,6 +299,7 @@ const SelectDropdown = React.forwardRef<HTMLButtonElement, SelectDropdownProps>(
       <div className={cn("relative", className)}>
         {label && (
           <div className="mb-2 text-sm font-medium">
+           
             {label}
           </div>
         )}
@@ -321,9 +324,12 @@ const SelectDropdown = React.forwardRef<HTMLButtonElement, SelectDropdownProps>(
                 ref={ref} 
                 className={cn(triggerClassName, allowClear && selectedValue ? "pr-12" : "pr-8")}
               >
-                <SelectValue placeholder={placeholder}>
-                  {selectedOption?.label || placeholder}
-                </SelectValue>
+                <div className="flex items-center gap-1">
+                  {icon && <span className="flex-shrink-0">{icon}</span>}
+                  <SelectValue placeholder={placeholder} className="pl-0">
+                    {selectedOption?.label || placeholder}
+                  </SelectValue>
+                </div>
               </SelectTrigger>
               
               {/* Custom clear button positioned absolutely */}
